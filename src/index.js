@@ -169,54 +169,49 @@ function prettyPrint(x) {
 }
 
 let ast = MyMath.tryParse(text);
-prettyPrint(ast);
 
 ////////////////////////////////////////////end parsimmon math.js/////////////////////////
-function interpret(ast){
-    //let output = "";
-  for(let i = 0; i < Object.entries(ast); i++){
-    console.log(i)
-    curnode = Object.entries(ast)[i];
-    console.log(curnode)
-    if (curnode.length != 0){
-      for(j = 0;  j< curnode.length; j++){
-          console.log(curnode[j]);
-      }
-    } else {
-      console.log(curnode);
-    }
-  }
-}
 
-var parseNode = function (node) {
+var calculate = function (node) {
     if (node.type === "number"){
     return node.value;
     }
-    else if ("Add") {
+    else if (node.type === "Add") {
         if (node.left){
-            sol = parseNode(node.left) + parseNode(node.right);
-        return sol;
+          let sol = calculate(node.left) + calculate(node.right);
+          return sol;
         }
     }
-    else if ("Multiply") {
+    else if (node.type === "Multiply") {
         if (node.left){
-            sol = parseNode(node.left) * parseNode(node.right);
-        return sol;
+            let sol = calculate(node.left) * calculate(node.right);
+            return sol;
         }
     }
-    else if ("Divide") {
+    else if (node.type === "Divide") {
         if (node.left){
-            sol = parseNode(node.left) / parseNode(node.right);
-        return sol;
+            let sol = calculate(node.left) / calculate(node.right);
+            return sol;
         }
     }
-    else if ("Subtract") {
-        if (node.left){
-            sol = parseNode(node.left) * parseNode(node.right);
-        }else{
-            sol = -parseNode(node.right);
-        return sol
+    else if (node.type === "Subtract") {
+        return  calculate(node.left) - calculate(node.right);
+    }
+    else {
+      throw 'Unknown type';
     }
 };
+
+const example1 = {
+  type: "Add",
+  left: { type: "number", value: 20 },
+  right: { type: "number", value: 40 }
 };
-interpret(ast);
+
+const example2 = {
+  type: "Subtract",
+  left: { type: "number", value: 20 },
+  right: { type: "number", value: 40 }
+};
+
+console.log(calculate(example2));
