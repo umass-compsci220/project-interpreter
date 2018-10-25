@@ -170,6 +170,26 @@ function prettyPrint(x) {
 
 let ast = MyMath.tryParse(text);
 
+function parse(str) {
+
+  let num = P.regexp(/[0-9]+/)
+    .map(function(str) { return { type: "number", value: Number(str) }; });
+
+  let mul = num.chain(function (lhs) {
+    return P.string('*').chain(function (_) {
+      return mul.chain(function(rhs) {
+        return P.succeed({ type: 'Multiply', left: lhs, right: rhs });
+      });
+    }).or(P.succeed(lhs)) ;
+  });
+
+  // 1. let add =  ... same as above, but uses mul instead of num
+  // 2. let atom = num.or( "(" add ")")
+
+
+  return mul.tryParse(str);
+}
+
 ////////////////////////////////////////////end parsimmon math.js/////////////////////////
 
 var calculate = function (node) {
@@ -215,3 +235,6 @@ const example2 = {
 };
 
 console.log(calculate(example2));
+console.log(calculate(parse("123123")));
+
+console.log(parse("123123*232*2*4"));
