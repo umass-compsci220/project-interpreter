@@ -1,6 +1,9 @@
 let util = require("util");
 let P = require("parsimmon");
+const parse = require('./index');
 
+
+/*
 function token(name_tok){
     return P.seq(P.string(name_tok),P.whitespace.or(P.eof)); 
 }
@@ -68,62 +71,60 @@ function parse(str) {
    //stmt.oradd tryParse(str) 
    
 }
-// add variables and conditionals 
-//stmt::= add or let x = add;add 
-////////////////////////////////////////////end parsimmon math.js/////////////////////////
+*/
 
-var calculate = function (node) {
-    if (node.type === "number"){
-    return node.value;
-    }
-    else if (node.type === "Add") {
-        if (node.left){
-          let sol = calculate(node.left) + calculate(node.right);
-          return sol;
-        }
-    }
-    else if (node.type === "Multiply") {
-        if (node.left){
-            let sol = calculate(node.left) * calculate(node.right);
-            return sol;
-        }
-    }
-    else if (node.type === "Divide") {
-        if (node.left){
-            let sol = calculate(node.left) / calculate(node.right);
-            return sol;
-        }
-    }
-    else if (node.type === "Subtract") {
-        return  calculate(node.left) - calculate(node.right);
-        
-    }else if ( node.name === "Variable"){
-        let name = node.named.value; 
-        let value = node.body.value; 
-        return(name + "=" + value);
-    }
-    else {
-      throw 'Unknown type';
-    }
-};
+test('Multiply Parses', () =>{
+    let eq = "123123*232*2*4"; 
+    let sol = { type: 'Multiply',
+        left: { type: 'number', value: 123123 },
+        right: { type: 'Multiply',
+            left: { type: 'number', value: 232 },
+            right: { type: 'Multiply', 
+                left: { type: 'number', value: 2 },
+                right: { type: 'number', value: 4 } } } }
+    expect(parse(eq)).toEqual(sol);
+}); 
 
-const example1 = {
-  type: "Add",
-  left: { type: "number", value: 20 },
-  right: { type: "number", value: 40 }
-};
+test('Addition Parses', () =>{
+    let eq = "123123+232+2+4"; 
+    let sol = { type: 'Add',
+        left: { type: 'number', value: 123123 },
+        right: { type: 'Add',
+            left: { type: 'number', value: 232 },
+            right: { type: 'Add', 
+                left: { type: 'number', value: 2 },
+                right: { type: 'number', value: 4 } } } }
+    expect(parse(eq)).toEqual(sol);
+}); 
 
-const example2 = {
-  type: "Subtract",
-  left: { type: "number", value: 20 },
-  right: { type: "number", value: 40 }
-};
+test('Subtraction Parses', () =>{
+    let eq = "123123-232-2-4"; 
+    let sol = { type: 'Subtract',
+        left: { type: 'number', value: 123123 },
+        right: { type: 'Subtract',
+            left: { type: 'number', value: 232 },
+            right: { type: 'Subtract', 
+                left: { type: 'number', value: 2 },
+                right: { type: 'number', value: 4 } } } }
+    expect(parse(eq)).toEqual(sol);
+}); 
 
-//console.log(calculate(example2));
-//console.log(calculate(parse("let x=123123;")));
-//console.log(parse("123123*232*2*4"));
-//console.log(parse("123+323+2+4"));
-//console.log(parse("123/3"));
-//console.log(parse("123-3"));
-//console.log(parse("let b=123;"));
-module.exports = parse
+test('Division Parses', () =>{
+    let eq = "123123/232/2/4"; 
+    let sol = { type: 'Divide',
+        left: { type: 'number', value: 123123 },
+        right: { type: 'Divide',
+            left: { type: 'number', value: 232 },
+            right: { type: 'Divide', 
+                left: { type: 'number', value: 2 },
+                right: { type: 'number', value: 4 } } } }
+    expect(parse(eq)).toEqual(sol);
+}); 
+
+test('Variables Parses', () =>{
+    let eq = "let x=123123;"; 
+    let sol = {name:'Variable',
+        named:{type:'variable', value: 'x'},
+        body:{ type:'number', value: 123123}}
+    expect(parse(eq)).toEqual(sol);
+}); 
