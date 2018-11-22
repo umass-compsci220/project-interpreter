@@ -3,6 +3,7 @@ import { Expr, Stmt } from './ast';
 import * as a from './ast';
 import { Result, ok, error, unreachable } from './result';
 import * as result from './result';
+import * as tc from './tc';
 
 let ws = P.optWhitespace;
 
@@ -15,10 +16,10 @@ function operator(name_op: string): P.Parser<string> {
     return P.string(name_op).skip(ws);
 }
 
-let num: P.Parser<Expr> = P.regexp(/[0-9]+/).skip(ws)
+let num: P.Parser<Expr> = P.regexp(/-?[0-9]+/).desc('integer').skip(ws)
     .map(str => a.number(Number(str)));
 
-let name: P.Parser<string> = P.regexp(/[A-Za-z]+/).skip(ws);
+let name: P.Parser<string> = P.regexp(/[A-Za-z]+/).desc('variable name').skip(ws);
 
 let bool: P.Parser<Expr> =
     P.string('true').map(_ => true).or(P.string('false').map(_ => false))
@@ -74,13 +75,39 @@ let stmt: P.Parser<Stmt> = P.lazy(() =>
 let block: P.Parser<Stmt[]> = P.lazy(() =>
     stmt.many().wrap(operator('{'), operator('}')));
 
-export function parse(input: string): Result<Stmt[]> {
-    let result = stmt.many().skip(P.eof).parse(input);
+function commaOr(strings: string[]): string {
+    if (strings.length <= 1) {
+        return strings.join('');
+    }
+    let last = strings.pop();
+    return strings.join(', ') + ', or ' + last;
+}
+
+/**
+ * Students will not use this function in the project. We will use this in class
+ * to illustrate ASTs.
+ */
+export function parseExpression(input: string): Result<Expr> {
+    let result = expr.skip(P.eof).parse(input);
     if (result.status) {
         return ok(result.value);
     }
     else {
-        return error(result.expected.map(m => `Parse error. Expected ${m}`)
-            .join('\n'));
+        return error('Parse error. Expected ' + commaOr(result.expected));
     }
+}
+
+/**
+ * Parse and type-check simple imperative programs. This is the function
+ * that students will use for the project.
+ */
+export function parseProgram(input: string): Result<Stmt[]> {
+    let result = stmt.many().skip(P.eof).parse(input);
+        if (result.status) {
+            const stmts = result.value;
+            return tc.tc(stmts).map(_ => stmts);
+        }
+        else {
+            return error('Parse error. Expected ' + commaOr(result.expected));
+        }
 }
