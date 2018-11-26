@@ -9,6 +9,14 @@ test('trivial let', () => {
     ]);
 });
 
+test('trivial let true', () => {
+    let r = parseProgram('let x = true;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', a.bool(true))
+    ]);
+});
+
 test('trivial if', () => {
     let r = parseProgram('let x = 10; if (x) { x = 2; } else { x = 4; }');
     expect(r.kind).toBe('ok');

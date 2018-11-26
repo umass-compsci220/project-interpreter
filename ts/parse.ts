@@ -26,9 +26,9 @@ let bool: P.Parser<Expr> =
     .skip(ws).map(b => a.bool(b));
 
 let atom: P.Parser<Expr> =
-    name.map(str => a.variable(str))
+    bool
+    .or(name.map(str => a.variable(str)))
     .or(num)
-    .or(bool)
     .or(P.lazy(() => expr.wrap(operator('('), operator(')'))));
 
 let mul: P.Parser<Expr> = P.lazy(() =>
