@@ -1,4 +1,4 @@
-export type Binop = '+' | '-' | '*' | '/' | '&&' | '||';
+export type Binop = '+' | '-' | '*' | '/' | '&&' | '||' | '>' | '<' | '===';
 
 export type Expr =
     { kind: 'boolean', value: boolean } |

@@ -43,7 +43,14 @@ let add: P.Parser<Expr> = P.lazy(() =>
         .or(operator('-').then(add.map(rhs => a.operator('-', lhs, rhs))))
         .or(P.succeed(lhs))));
 
-let expr = add;
+let cmp: P.Parser<Expr> =
+    add.chain(lhs =>
+        operator('>').then(add.map(rhs => a.operator('>', lhs, rhs)))
+        .or(operator('<').then(add.map(rhs => a.operator('<', lhs, rhs))))
+        .or(operator('===').then(add.map(rhs => a.operator('===', lhs, rhs))))
+        .or(P.succeed(lhs)));
+
+let expr = cmp;
 
 let stmt: P.Parser<Stmt> = P.lazy(() =>
     token('let')

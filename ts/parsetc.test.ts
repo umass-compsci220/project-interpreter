@@ -46,6 +46,13 @@ test('arithmetic precedence', () => {
     ]);
 });
 
+test('comparison', () => {
+    let r = parseProgram('let x = 1 > 2;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', a.operator('>', a.number(1), a.number(2)))]);
+});
+
 test('subtraction binding', () => {
     let r = parseProgram('let x = 1 - 2 - 3;');
     expect(r.kind).toBe('ok');
