@@ -50,7 +50,17 @@ let cmp: P.Parser<Expr> =
         .or(operator('===').then(add.map(rhs => a.operator('===', lhs, rhs))))
         .or(P.succeed(lhs)));
 
-let expr = cmp;
+let or: P.Parser<Expr> =
+    cmp.chain(lhs =>
+        operator('||').then(or.map(rhs => a.operator('||', lhs, rhs)))
+        .or(P.succeed(lhs)));
+
+let and: P.Parser<Expr> =
+    or.chain(lhs =>
+        operator('&&').then(and.map(rhs => a.operator('&&', lhs, rhs)))
+        .or(P.succeed(lhs)));
+
+let expr = and;
 
 let stmt: P.Parser<Stmt> = P.lazy(() =>
     token('let')

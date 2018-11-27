@@ -46,6 +46,15 @@ test('arithmetic precedence', () => {
     ]);
 });
 
+test('logical precedence', () => {
+    let r = parseProgram('let x = true || false && true;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', a.operator('&&',
+            a.operator('||', a.bool(true), a.bool(false)),
+            a.bool(true)))]);
+});
+
 test('comparison', () => {
     let r = parseProgram('let x = 1 > 2;');
     expect(r.kind).toBe('ok');
