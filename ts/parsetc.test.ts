@@ -66,8 +66,10 @@ test('subtraction binding', () => {
     let r = parseProgram('let x = 1 - 2 - 3;');
     expect(r.kind).toBe('ok');
     expect(r.unsafeGet()).toEqual([
-        a.let_('x', a.operator('-', a.number(1),
-            a.operator('-', a.number(2), a.number(3))))
+        a.let_('x', 
+            a.operator('-', 
+                a.operator('-', a.number(1), a.number(2)), 
+                a.number(3)))
     ]);
 });
 
@@ -84,4 +86,52 @@ test('cannot redeclare variables', () => {
 test('cannot redeclare variables, even in different scopes', () => {
     let r = parseProgram('let x = 1; while (true) { let x = 2; }');
     expect(r.kind).toBe('error');
+});
+
+test('Left associative multiply', () => {
+    let r = parseProgram('let x = 1 + 2 * 3;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', 
+            a.operator('+', 
+                a.number(1), 
+                a.operator('*', a.number(2), a.number(3))))
+    ]);
+});
+
+test('Left associative divide', () => {
+    let r = parseProgram('let x = 1 + 2 / 3;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', 
+            a.operator('+', 
+                a.number(1), 
+                a.operator('/', a.number(2), a.number(3))))
+    ]);
+});
+
+test('Left associative plus minus', () => {
+    let r = parseProgram('let x = 1 - 2 + 3;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', 
+            a.operator('+', 
+                a.operator('-', a.number(1), a.number(2)), 
+                a.number(3)))
+    ]);
+});
+
+test('Left associative complicated', () => {
+    let r = parseProgram('let x = 2 === 3 || 2 - 1 * 2 > 2;');
+    expect(r.kind).toBe('ok');
+    expect(r.unsafeGet()).toEqual([
+        a.let_('x', 
+            a.operator('||', 
+                a.operator('===', a.number(2), a.number(3)), 
+                a.operator('>', 
+                    a.operator('-', 
+                        a.number(2), 
+                        a.operator('*', a.number(1), a.number(2))), 
+                    a.number(2))))
+    ]);
 });
