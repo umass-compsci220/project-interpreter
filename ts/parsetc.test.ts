@@ -1,4 +1,4 @@
-import { parseProgram } from './index';
+import { parseProgram, parseExpression } from './index';
 import * as a from './ast';
 
 test('trivial let', () => {
@@ -86,6 +86,16 @@ test('cannot redeclare variables', () => {
 test('cannot redeclare variables, even in different scopes', () => {
     let r = parseProgram('let x = 1; while (true) { let x = 2; }');
     expect(r.kind).toBe('error');
+});
+
+test('leading space in program', () => {
+    let r = parseProgram('  let x = 1;');
+    expect(r.kind).toBe('ok');
+});
+
+test('leading white space in expression', () => {
+    let r = parseExpression(' 1 + 2');
+    expect(r.kind).toBe('ok');
 });
 
 test('Left associative multiply', () => {

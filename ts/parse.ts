@@ -8,7 +8,7 @@ import * as tc from './tc';
 let ws = P.optWhitespace;
 
 function token(name_tok: string): P.Parser<string> {
-    return P.string(name_tok).skip(ws);
+    return ws.then(P.string(name_tok)).skip(ws);
 }
 
 // NOTE(arjun): token and operator as identical ... mistake?
@@ -26,10 +26,10 @@ let bool: P.Parser<Expr> =
     .skip(ws).map(b => a.bool(b));
 
 let atom: P.Parser<Expr> =
-    bool
+    ws.then(bool
     .or(name.map(str => a.variable(str)))
     .or(num)
-    .or(P.lazy(() => expr.wrap(operator('('), operator(')'))));
+    .or(P.lazy(() => expr.wrap(operator('('), operator(')')))));
 
 let mul: P.Parser<Expr> = P.lazy(() =>
     atom.chain(lhs => // get left hand side with atom
