@@ -23,13 +23,13 @@ let name: P.Parser<string> = P.regexp(/[A-Za-z]+/).desc('variable name').skip(ws
 
 let bool: P.Parser<Expr> =
     P.string('true').map(_ => true).or(P.string('false').map(_ => false))
-        .skip(ws).map(b => a.bool(b));
+    .skip(ws).map(b => a.bool(b));
 
 let atom: P.Parser<Expr> =
     bool
-        .or(name.map(str => a.variable(str)))
-        .or(num)
-        .or(P.lazy(() => expr.wrap(operator('('), operator(')'))));
+    .or(name.map(str => a.variable(str)))
+    .or(num)
+    .or(P.lazy(() => expr.wrap(operator('('), operator(')'))));
 
 let mul: P.Parser<Expr> = P.lazy(() =>
     atom.chain(lhs => // get left hand side with atom
