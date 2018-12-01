@@ -32,33 +32,55 @@ let atom: P.Parser<Expr> =
     .or(P.lazy(() => expr.wrap(operator('('), operator(')'))));
 
 let mul: P.Parser<Expr> = P.lazy(() =>
-    atom.chain(lhs =>
-        operator('*').then(mul.map(rhs => a.operator('*', lhs, rhs)))
-        .or(operator('/').then(mul.map(rhs => a.operator('/', lhs, rhs))))
-        .or(P.succeed(lhs))));
+    atom.chain(lhs => // get left hand side with atom
+        P.seq(operator('*').or(operator('/')), atom).many().map((opNumArr) => {
+            // get as many sequences of operator x atom pairs
+            return opNumArr.reduce((acc, currVal) => {
+                // reduce over the array of pairs
+                if (currVal[0] === '*') {
+                    return a.operator('*', acc, currVal[1]); // build tree with acc as lhs
+                }
+                return a.operator('/', acc, currVal[1]);
+            }, lhs);
+        })));
 
 let add: P.Parser<Expr> = P.lazy(() =>
     mul.chain(lhs =>
-        operator('+').then(add.map(rhs => a.operator('+', lhs, rhs)))
-        .or(operator('-').then(add.map(rhs => a.operator('-', lhs, rhs))))
-        .or(P.succeed(lhs))));
+        P.seq(operator('+').or(operator('-')), mul).many().map((opNumArr) => {
+            // get many sequences of operator x multiplication expression pairs
+            return opNumArr.reduce((acc, currVal) => {
+                if (currVal[0] === '+') {
+                    return a.operator('+', acc, currVal[1]);
+                }
+                return a.operator('-', acc, currVal[1]);
+            }, lhs);
+        })));
 
-let cmp: P.Parser<Expr> =
+let cmp: P.Parser<Expr> = P.lazy(() =>
     add.chain(lhs =>
-        operator('>').then(add.map(rhs => a.operator('>', lhs, rhs)))
-        .or(operator('<').then(add.map(rhs => a.operator('<', lhs, rhs))))
-        .or(operator('===').then(add.map(rhs => a.operator('===', lhs, rhs))))
-        .or(P.succeed(lhs)));
+        P.seq(operator('>').or(operator('<')).or(operator('===')), add).many().map((opNumArr) => {
+            return opNumArr.reduce((acc, currVal) => {
+                if (currVal[0] === '>') {
+                    return a.operator('>', acc, currVal[1]);
+                }
+                if (currVal[0] === '<') {
+                    return a.operator('<', acc, currVal[1]);
+                }
+                return a.operator('===', acc, currVal[1]);
+            }, lhs);
+        })));
 
-let or: P.Parser<Expr> =
+let or: P.Parser<Expr> = P.lazy(() =>
     cmp.chain(lhs =>
-        operator('||').then(or.map(rhs => a.operator('||', lhs, rhs)))
-        .or(P.succeed(lhs)));
+        P.seq(operator('||'), cmp).many().map((opNumArr) => {
+            return opNumArr.reduce((acc, currVal) => a.operator('||', acc, currVal[1]), lhs);
+        })));
 
-let and: P.Parser<Expr> =
+let and: P.Parser<Expr> = P.lazy(() =>
     or.chain(lhs =>
-        operator('&&').then(and.map(rhs => a.operator('&&', lhs, rhs)))
-        .or(P.succeed(lhs)));
+        P.seq(operator('&&'), or).many().map((opNumArr) => {
+            return opNumArr.reduce((acc, currVal) => a.operator('&&', acc, currVal[1]), lhs);
+        })));
 
 let expr = and;
 
