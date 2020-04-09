@@ -70,19 +70,19 @@ let cmp: P.Parser<Expr> = P.lazy(() =>
             }, lhs);
         })));
 
-let or: P.Parser<Expr> = P.lazy(() =>
-    cmp.chain(lhs =>
-        P.seq(operator('||'), cmp).many().map((opNumArr) => {
-            return opNumArr.reduce((acc, currVal) => a.operator('||', acc, currVal[1]), lhs);
-        })));
-
 let and: P.Parser<Expr> = P.lazy(() =>
-    or.chain(lhs =>
-        P.seq(operator('&&'), or).many().map((opNumArr) => {
+    cmp.chain(lhs =>
+        P.seq(operator('&&'), cmp).many().map((opNumArr) => {
             return opNumArr.reduce((acc, currVal) => a.operator('&&', acc, currVal[1]), lhs);
         })));
 
-let expr = and;
+let or: P.Parser<Expr> = P.lazy(() =>
+    and.chain(lhs =>
+        P.seq(operator('||'), and).many().map((opNumArr) => {
+            return opNumArr.reduce((acc, currVal) => a.operator('||', acc, currVal[1]), lhs);
+        })));
+
+let expr = or;
 
 let stmt: P.Parser<Stmt> = P.lazy(() =>
     token('let')
